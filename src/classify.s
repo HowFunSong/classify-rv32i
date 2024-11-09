@@ -34,7 +34,7 @@ classify:
     
     # Prolouge
     addi sp, sp, -48
-    
+   
     sw ra, 0(sp)
     
     sw s0, 4(sp) # m0 matrix
