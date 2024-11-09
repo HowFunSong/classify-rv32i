@@ -83,7 +83,6 @@ i_mul:
     sw ra, 20(sp)
 
     # do mul
-    
     # do mul
     lw s0, 0(sp)
     lw s1, 4(sp)
