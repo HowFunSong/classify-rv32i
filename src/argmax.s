@@ -1,5 +1,5 @@
 .globl argmax
-
+.globl utils
 .text
 # =================================================================
 # FUNCTION: Maximum Element First Index Finder

@@ -26,42 +26,66 @@
 #   - Exits with code 37 if any stride < 1
 # =======================================================
 dot:
+    addi sp, sp, -24         # Allocate space on the stack
+    sw ra, 0(sp)             # Save return address
+    sw s0, 4(sp)             # Save s0
+    sw s1, 8(sp)             # Save s1
+    sw s2, 12(sp)            # Save s2
+    sw s3, 16(sp)
+    sw s4, 20(sp)
+
     li t0, 1
     blt a2, t0, error_terminate  
     blt a3, t0, error_terminate   
     blt a4, t0, error_terminate  
-
-    li t0, 0         # sum   
-    li t1, 0         # counter
-    li s0, 0
-    li s1, 0
-loop_start:
-    bge t1, a2, loop_end
-    # TODO: Add your own implementation
-    add s0, s0, a3
-    add s1, s1, a4
-
-    ; add s3, x0, s0
-    ; add s4, x0, s1
-
-    slli s3, s0, 2
-    slli s4, s1, 2
-
-    add  s3, a0, s3
-    add  s4, a1, s4
     
-    lw   s3, 0(s3)
-    lw   s4, 0(s4)
+    # 現在會修改到a0 -> error!!!
+    li t0, 0                # Initialize sum
+    li t1, 0                # Initialize counter
+    li s0, 0                # Offset for arr0
+    li s1, 0                # Offset for arr1
+    li s2, 0                # Initialize result accumulator (sum)
+    mv s3, a0
+    mv s4, a1
 
-    jal  i_mul
+loop_start:
+    bge t1, a2, loop_end    # If counter >= element count, exit loop
 
-    add t0, a0, t0
-    addi t1, t1, 1
-    j    loop_start
+
+    slli t2, s0, 2          # Convert offset to byte offset for arr0
+    slli t3, s1, 2          # Convert offset to byte offset for arr1
+
+    add t2, s3, t2          # Calculate effective address for arr0[i * stride0]
+    add t3, s4, t3          # Calculate effective address for arr1[i * stride1]
+    
+    lw t2, 0(t2)            # Load value from arr0[i * stride0]
+    lw t3, 0(t3)            # Load value from arr1[i * stride1]
+    
+    mv a0, t2               # 將 pass t2 -> a0
+    mv a1, t3               # 將 pass t3 -> a1
+    
+    jal ra, i_mul           # Call i_mul to multiply a0 and a1
+    add s2, a0, s2          # Accumulate result
+
+    addi t1, t1, 1          # Increment loop counter
+    add s0, s0, a3          # Update offset for arr0
+    add s1, s1, a4          # Update offset for arr1
+    
+    j loop_start            # Repeat loop
 
 loop_end:
-    mv a0, t0
-    jr ra
+    mv a0, s2               # Store final sum in a0
+
+    # Restore saved registers before return
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    lw s2, 12(sp)
+    lw s3, 16(sp)
+    lw s4, 20(sp)
+
+    addi sp, sp, 24         # Deallocate stack space
+    jr ra                   # Return from function
 
 error_terminate:
     blt a2, t0, set_error_36
@@ -72,24 +96,38 @@ set_error_36:
     li a0, 36
     j exit
 
+exit:
+    mv a1, a0
+    li a0, 17
+    ecall
 
+# Multiplication subroutine (unchanged)
 i_mul:
-    addi sp,sp, -24
+    addi sp,sp, -12
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
-    sw s3, 12(sp)
-    sw s4, 16(sp)
-    sw ra, 20(sp)
+    
+    
+    mv s0, a0            # s0 = multiplicand (value of a0)
+    mv s1, a1            # s1 = multiplier (value of a1)
+    addi a0, x0, 0             # Initialize result to 0
 
-    # do mul
-    # do mul
+multiply_loop:
+    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
+    beq t0, x0, skip_add # If LSB is 0, skip addition
+    add a0, a0, s0      # Add s2 to result if LSB is 1
+
+skip_add:
+    slli s0, s0, 1       # left shift s0 (multiplicand) by 1 (x2) 
+    srli s1, s1, 1       # right shift s1 (multiplier) by 1 (>>1)
+    bnez s1, multiply_loop  # Repeat loop if s is not zero
+
+end_mul:
+    # Restore registers in i_mul
     lw s0, 0(sp)
     lw s1, 4(sp)
     lw s2, 8(sp)
-    lw s3, 12(sp)
-    lw s4, 16(sp)
-    lw ra, 20(sp)
-    addi sp,sp, 24
+    addi sp,sp, 12
 
     jr ra
