@@ -75,7 +75,20 @@ read_matrix:
     sw t2, 0(s4)     # saves num cols
 
     # mul s1, t1, t2   # s1 is number of elements
-    # FIXME: Replace 'mul' with your own implementation
+    # ########  my_implementation ########
+    addi sp, sp, -8
+    sw   a0, 0(sp) 
+    sw   ra, 4(sp)
+
+    mv a0, t1
+    mv a1, t2
+    jal ra, i_mul
+    mv  s1, a0
+
+    lw a0, 0(sp)
+    lw ra, 4(sp)
+    addi sp, sp, 8
+    # ########  my_implementation end ########     
 
     slli t3, s1, 2
     sw t3, 24(sp)    # size in bytes
@@ -143,3 +156,35 @@ error_exit:
     lw s4, 20(sp)
     addi sp, sp, 40
     j exit
+
+
+# Multiplication
+i_mul:
+    addi sp,sp, -12
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    
+    
+    mv s0, a0            # s0 = multiplicand (value of a0)
+    mv s1, a1            # s1 = multiplier (value of a1)
+    addi a0, x0, 0             # Initialize result to 0
+
+multiply_loop:
+    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
+    beq t0, x0, skip_add # If LSB is 0, skip addition
+    add a0, a0, s0      # Add s0 to result if LSB is 1
+
+skip_add:
+    slli s0, s0, 1       # left shift s0 (multiplicand) by 1 (x2) 
+    srli s1, s1, 1       # right shift s1 (multiplier) by 1 (>>1)
+    bnez s1, multiply_loop  # Repeat loop if s is not zero
+
+end_mul:
+    # Restore registers in i_mul
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    addi sp,sp, 12
+
+    jr ra

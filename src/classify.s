@@ -167,6 +167,18 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    mv a0, t0
+    mv a1, t1
+    jal ra, i_mul
+
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    
+    # ####
+
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -204,6 +216,23 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a1, t0, t1 # length of h array and set it as second argument
+
+    addi sp, sp, -8
+    sw   ra, 0(sp)
+    sw   a0, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+    
+    jal ra, i_mul
+    mv a1, a0
+    
+    lw   ra, 0(sp)
+    lw   a0, 4(sp)
+    addi sp, sp, 8
+
+    # ###
+
     # FIXME: Replace 'mul' with your own implementation
     
     jal relu
@@ -227,6 +256,18 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s6)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    addi sp, sp, -4
+    sw ra, 0(sp)
+
+    mv a0, t0
+    mv a1, t1
+
+    jal ra, i_mul
+     
+    lw ra, 0(sp)
+    addi sp, sp, 4
+
+    # ###
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -286,9 +327,24 @@ classify:
     mv a0, s10 # load o array into first arg
     lw t0, 0(s3)
     lw t1, 0(s6)
-    mul a1, t0, t1 # load length of array into second arg
     # FIXME: Replace 'mul' with your own implementation
-    
+    # mul a1, t0, t1 # load length of array into second arg
+    # ######  implementation
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    mv a0, t0
+    mv a1, t1
+    jal ra, i_mul
+    mv a1, a0
+
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    addi sp, sp, 8
+
+    # ######
+
     jal argmax
     
     mv t0, a0 # move return value of argmax into t0
@@ -384,3 +440,33 @@ error_args:
 error_malloc:
     li a0, 26
     j exit
+
+
+i_mul:
+    addi sp,sp, -12
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+
+    mv s0, a0            # s0 = multiplicand (value of a0)
+    mv s1, a1            # s1 = multiplier (value of a1)
+    addi a0, x0, 0             # Initialize result to 0
+
+multiply_loop:
+    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
+    beq t0, x0, skip_add # If LSB is 0, skip addition
+    add a0, a0, s0      # Add s0 to result if LSB is 1
+
+skip_add:
+    slli s0, s0, 1       # left shift s0 (multiplicand) by 1 (x2) 
+    srli s1, s1, 1       # right shift s1 (multiplier) by 1 (>>1)
+    bnez s1, multiply_loop  # Repeat loop if s is not zero
+
+end_mul:
+    # Restore registers in i_mul
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    addi sp,sp, 12
+
+    jr ra

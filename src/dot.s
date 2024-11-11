@@ -101,7 +101,7 @@ exit:
     li a0, 17
     ecall
 
-# Multiplication subroutine (unchanged)
+# Multiplication
 i_mul:
     addi sp,sp, -12
     sw s0, 0(sp)

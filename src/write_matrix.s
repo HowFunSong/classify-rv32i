@@ -63,6 +63,20 @@ write_matrix:
 
     # mul s4, s2, s3   # s4 = total elements
     # FIXME: Replace 'mul' with your own implementation
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+
+    mv a0, s2
+    mv a1, s3
+    jal ra, i_mul
+    mv s4, a0
+
+    sw ra, 0(sp)
+    sw a0, 4(sp)
+    addi sp, sp, 8
+
+    # ########
 
     # write matrix data to file
     mv a0, s0
@@ -113,3 +127,35 @@ error_exit:
     lw s4, 20(sp)
     addi sp, sp, 44
     j exit
+
+
+# Multiplication
+i_mul:
+    addi sp,sp, -12
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    
+    
+    mv s0, a0            # s0 = multiplicand (value of a0)
+    mv s1, a1            # s1 = multiplier (value of a1)
+    addi a0, x0, 0             # Initialize result to 0
+
+multiply_loop:
+    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
+    beq t0, x0, skip_add # If LSB is 0, skip addition
+    add a0, a0, s0      # Add s0 to result if LSB is 1
+
+skip_add:
+    slli s0, s0, 1       # left shift s0 (multiplicand) by 1 (x2) 
+    srli s1, s1, 1       # right shift s1 (multiplier) by 1 (>>1)
+    bnez s1, multiply_loop  # Repeat loop if s is not zero
+
+end_mul:
+    # Restore registers in i_mul
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    addi sp,sp, 12
+
+    jr ra
