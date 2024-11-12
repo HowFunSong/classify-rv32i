@@ -167,15 +167,19 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
-    addi sp, sp, -4
+    # a0 is result , dont need save a0 before call i_mul
+    addi sp, sp, -8
     sw ra, 0(sp)
-    
+    sw a1, 4(sp)
+
     mv a0, t0
     mv a1, t1
     jal ra, i_mul
 
     lw ra, 0(sp)
-    addi sp, sp, 4
+    lw a1, 4(sp)
+
+    addi sp, sp, 8
     
     # ####
 
@@ -216,24 +220,23 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a1, t0, t1 # length of h array and set it as second argument
-
+    # FIXME: Replace 'mul' with your own implementation
+    # a1 is result, so dont need save it before call i_mul
     addi sp, sp, -8
     sw   ra, 0(sp)
     sw   a0, 4(sp)
-
+    
     mv a0, t0
     mv a1, t1
     
     jal ra, i_mul
-    mv a1, a0
+    mv  a1, a0
     
     lw   ra, 0(sp)
     lw   a0, 4(sp)
     addi sp, sp, 8
 
     # ###
-
-    # FIXME: Replace 'mul' with your own implementation
     
     jal relu
     
@@ -255,9 +258,12 @@ classify:
     
     lw t0, 0(s3)
     lw t1, 0(s6)
+
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
-    addi sp, sp, -4
+    # a0 is result , so we dont need save a0 before call i_mul
+    addi sp, sp, -8
     sw ra, 0(sp)
+    sw a1, 4(sp)
 
     mv a0, t0
     mv a1, t1
@@ -265,7 +271,8 @@ classify:
     jal ra, i_mul
      
     lw ra, 0(sp)
-    addi sp, sp, 4
+    lw a1, 4(sp)
+    addi sp, sp, 8
 
     # ###
     slli a0, a0, 2
@@ -327,8 +334,10 @@ classify:
     mv a0, s10 # load o array into first arg
     lw t0, 0(s3)
     lw t1, 0(s6)
+
     # FIXME: Replace 'mul' with your own implementation
     # mul a1, t0, t1 # load length of array into second arg
+    # here notice before call the i_mul, a0 need save, but a1 not need 
     # ######  implementation
     addi sp, sp, -8
     sw ra, 0(sp)
@@ -443,18 +452,19 @@ error_malloc:
 
 
 i_mul:
-    addi sp,sp, -12
+    addi sp,sp, -16
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
+    sw s3, 12(sp)
 
     mv s0, a0            # s0 = multiplicand (value of a0)
     mv s1, a1            # s1 = multiplier (value of a1)
     addi a0, x0, 0             # Initialize result to 0
 
 multiply_loop:
-    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
-    beq t0, x0, skip_add # If LSB is 0, skip addition
+    andi s3, s1, 1       # Check if the least significant bit of s1 is 1
+    beq s3, x0, skip_add # If LSB is 0, skip addition
     add a0, a0, s0      # Add s0 to result if LSB is 1
 
 skip_add:
@@ -467,6 +477,7 @@ end_mul:
     lw s0, 0(sp)
     lw s1, 4(sp)
     lw s2, 8(sp)
-    addi sp,sp, 12
+    lw s3, 12(sp)
+    addi sp,sp, 16
 
     jr ra

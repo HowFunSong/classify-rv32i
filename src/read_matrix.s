@@ -76,18 +76,20 @@ read_matrix:
 
     # mul s1, t1, t2   # s1 is number of elements
     # ########  my_implementation ########
-    addi sp, sp, -8
-    sw   a0, 0(sp) 
-    sw   ra, 4(sp)
+    addi sp, sp, -12
+    sw   ra, 0(sp)
+    sw   a0, 4(sp)
+    sw   a1, 8(sp) 
 
     mv a0, t1
     mv a1, t2
     jal ra, i_mul
     mv  s1, a0
 
-    lw a0, 0(sp)
-    lw ra, 4(sp)
-    addi sp, sp, 8
+    lw ra, 0(sp)
+    lw a0, 4(sp)
+    lw a1, 8(sp)
+    addi sp, sp, 12
     # ########  my_implementation end ########     
 
     slli t3, s1, 2
@@ -164,7 +166,6 @@ i_mul:
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
-    
     
     mv s0, a0            # s0 = multiplicand (value of a0)
     mv s1, a1            # s1 = multiplier (value of a1)

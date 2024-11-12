@@ -39,7 +39,7 @@ dot:
     blt a3, t0, error_terminate   
     blt a4, t0, error_terminate  
     
-    # 現在會修改到a0 -> error!!!
+    # init register
     li t0, 0                # Initialize sum
     li t1, 0                # Initialize counter
     li s0, 0                # Offset for arr0
@@ -51,7 +51,6 @@ dot:
 loop_start:
     bge t1, a2, loop_end    # If counter >= element count, exit loop
 
-
     slli t2, s0, 2          # Convert offset to byte offset for arr0
     slli t3, s1, 2          # Convert offset to byte offset for arr1
 
@@ -60,13 +59,23 @@ loop_start:
     
     lw t2, 0(t2)            # Load value from arr0[i * stride0]
     lw t3, 0(t3)            # Load value from arr1[i * stride1]
+    # ### mul a0, t2, t3
+    # a0 is result, and it don't need save before call i-mul
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a1, 4(sp)
     
     mv a0, t2               # 將 pass t2 -> a0
     mv a1, t3               # 將 pass t3 -> a1
     
     jal ra, i_mul           # Call i_mul to multiply a0 and a1
     add s2, a0, s2          # Accumulate result
+    
+    lw ra, 0(sp)
+    lw a1, 4(sp)
 
+    addi sp, sp, 8
+    # ### 
     addi t1, t1, 1          # Increment loop counter
     add s0, s0, a3          # Update offset for arr0
     add s1, s1, a4          # Update offset for arr1
@@ -103,19 +112,20 @@ exit:
 
 # Multiplication
 i_mul:
-    addi sp,sp, -12
+    addi sp,sp, -16
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
-    
+    sw s3, 12(sp)
+
     
     mv s0, a0            # s0 = multiplicand (value of a0)
     mv s1, a1            # s1 = multiplier (value of a1)
     addi a0, x0, 0             # Initialize result to 0
 
 multiply_loop:
-    andi t0, s1, 1       # Check if the least significant bit of s1 is 1
-    beq t0, x0, skip_add # If LSB is 0, skip addition
+    andi s3, s1, 1       # Check if the least significant bit of s1 is 1
+    beq s3, x0, skip_add # If LSB is 0, skip addition
     add a0, a0, s0      # Add s2 to result if LSB is 1
 
 skip_add:
@@ -128,6 +138,8 @@ end_mul:
     lw s0, 0(sp)
     lw s1, 4(sp)
     lw s2, 8(sp)
-    addi sp,sp, 12
+    lw s3, 12(sp)
+
+    addi sp,sp, 16
 
     jr ra
