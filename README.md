@@ -314,3 +314,6 @@ For example, in `classify.s` before call i-mul(codeline 342~353):
         addi sp, sp, 16        # Deallocate stack space
 
         jr ra                  # Return from i_mul
+```
+### Run `./test.sh all` 
+![alt text](image.png)
