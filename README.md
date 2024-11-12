@@ -7,13 +7,13 @@
 
 ### Part (A)
 #### abs.s
-    ```assembly
+```assembly
     # My implementation
     sub t0, x0, t0
     sw  t0, 0(a0)
-    ```
+```
 #### argmax.s
-    ```assembly
+```assembly
     # My implementation
     loop_start:
         # TODO: Add your own implementation
@@ -33,7 +33,7 @@
         # Epilogue
         add  a0, x0, t1 
         jr ra    
-    ```
+```
 #### dot.s
 ``` assembly
     dot:
