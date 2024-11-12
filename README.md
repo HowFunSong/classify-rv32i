@@ -1,4 +1,9 @@
 # Assignment 2: Classify
+### Development Environment
+
+- **Operating System**: macOS 14.2 
+- **Python**: 3.11.3
+- **Java**: OpenJDK 17.0.8.1 (Temurin)
 
 ### Part (A)
 #### abs.s
@@ -316,4 +321,5 @@ For example, in `classify.s` before call i-mul(codeline 342~353):
         jr ra                  # Return from i_mul
 ```
 ### Run `./test.sh all` 
+
 ![alt text](image.png)
