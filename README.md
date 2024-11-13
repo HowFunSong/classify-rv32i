@@ -42,7 +42,7 @@
     # ... ... ... ... ... ... ...
 
         # init register
-        li t0, 0                # Initialize sum
+        li t0, 0                
         li t1, 0                # Initialize counter
         li s0, 0                # Offset for arr0
         li s1, 0                # Offset for arr1
@@ -61,7 +61,7 @@
         
         lw t2, 0(t2)            # Load value from arr0[i * stride0]
         lw t3, 0(t3)            # Load value from arr1[i * stride1]
-        # ### mul a0, t2, t3
+        # mul a0, t2, t3
         # a0 is result, and it don't need save before call i-mul
         addi sp, sp, -8
         sw ra, 0(sp)
@@ -200,9 +200,9 @@
 ### Part (B)
 #### write_matrix.s, read_matrix.s, classify.s
 
-There are several `mul` operations that need to be implemented without using the `mul` instruction. We created a custom multiplication function (`i_mul`). Depending on the registers used to store values, we may need to move them to `s0` and `s1`, with the return value in `a0`.
+There are several `mul` operations that need to be implemented without using the `mul` instruction. We created a custom multiplication function (`i_mul`). Depending on the registers used to store values, we may need to move them to `a0` and `a1`, with the return value in `a0`.
 
-Before calling `i_mul`, if `a0` and `a1` are already in the required registers, you don’t need to save them before the call. Otherwise, save the necessary registers before calling `i_mul`.
+for example, we have a instruction like `mul a0, t1, t2`, we replace it with our `i_mul`. Before calling `i_mul`, if `a0` and `a1` are already in the `rd`, you don’t need to save them before the call. Otherwise, save the necessary registers before calling `i_mul`.
 
 For example, in `write_matrix.s`:
 
@@ -221,11 +221,11 @@ For example, in `write_matrix.s`:
         mv a0, s2
         mv a1, s3
         jal ra, i_mul   # Call multiplication (i_mul)
-        mv s4, a0
+        mv s4, a0       # move to s4
 
-        lw ra, 0(sp)
-        lw a0, 4(sp)
-        lw a1, 8(sp)
+        lw ra, 0(sp)   # restore ra
+        lw a0, 4(sp)   # restore a0
+        lw a1, 8(sp)   # restore a1 
 
         # ... (skipping unchanged parts) ...
 
